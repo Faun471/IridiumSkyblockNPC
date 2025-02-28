@@ -1,0 +1,9 @@
+{
+    "java.format.settings.url": "java-formatter.xml",
+    "[java]": {
+        "editor.insertSpaces": false,
+        "editor.detectIndentation": false
+    },
+    "java.checkstyle.configuration": "${workspaceFolder}\\java-formatter.xml",
+    "java.configuration.updateBuildConfiguration": "interactive"
+}

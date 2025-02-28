@@ -1,6 +1,0 @@
-name: IridiumSkyblockNPC
-version: '1.0-SNAPSHOT'
-main: dev.faun.iridiumskyblocknpc.IridiumSkyblockNPC
-api-version: '1.21'
-description: 'A plugin that adds NPCs to IridiumSkyblock'
-depend: [IridiumSkyblock, FancyNpcs]
