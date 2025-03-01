@@ -2,4 +2,4 @@
 /build
 /.gradle
 java-formatter.xml
-.vscode/settings.json
+.vscode/
