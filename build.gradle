@@ -28,6 +28,10 @@ repositories {
         name = "triumph"
         url = "https://repo.triumphteam.dev/snapshots/"
     }
+    maven {
+        name = "code-mc"
+        url = "https://repo.codemc.io/repository/maven-snapshots/"
+    }
 }
 
 dependencies {
@@ -37,6 +41,8 @@ dependencies {
     implementation("ch.jalu:configme:1.4.1")
     implementation("dev.triumphteam:triumph-gui:3.1.11")
     implementation("dev.triumphteam:triumph-cmd-bukkit:2.0.0-ALPHA-10")
+    implementation("de.rapha149.signgui:signgui:2.5.0")
+    implementation("net.wesjd:anvilgui:1.10.4-SNAPSHOT")
 }
 
 def targetJavaVersion = 21
@@ -69,4 +75,6 @@ processResources {
 shadowJar {
     relocate("dev.triumphteam.gui", "dev.faun.gui")
     relocate("dev.triumphteam.cmd", "dev.faun.cmd")
+    relocate("de.rapha149.signgui", "dev.faun.signgui")
+    relocate("net.wesjd.anvilgui", "dev.faun.anvilgui")
 }

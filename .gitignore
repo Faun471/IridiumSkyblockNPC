@@ -1,1 +1,5 @@
 .idea/vcs.xml
+/build
+/.gradle
+java-formatter.xml
+.vscode/settings.json

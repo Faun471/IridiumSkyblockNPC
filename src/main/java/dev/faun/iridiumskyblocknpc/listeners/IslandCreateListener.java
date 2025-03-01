@@ -59,7 +59,8 @@ public class IslandCreateListener implements Listener {
     private NpcData createNpcData(Island island, UUID playerUUID, Location location) {
         NpcData data = new NpcData(island.getName(), playerUUID, location);
 
-        data.setDisplayName(configManager.getValue(Config.DEFAULT_DISPLAY_NAME).replace("%island_name%", island.getName()));
+        data.setDisplayName(
+                configManager.getValue(Config.DEFAULT_DISPLAY_NAME).replace("%island_name%", island.getName()));
         data.setMirrorSkin(configManager.getValue(Config.MIRROR_SKIN));
         data.setTurnToPlayer(configManager.getValue(Config.TURN_TO_PLAYER));
         data.setGlowing(configManager.getValue(Config.GLOWING));
@@ -70,11 +71,10 @@ public class IslandCreateListener implements Listener {
 
         configManager.getValue(Config.NPC_ACTIONS).forEach(action -> {
             data.addAction(
-                   action.getActionTrigger(),
+                    action.getActionTrigger(),
                     action.getOrder(),
                     FancyNpcsPlugin.get().getActionManager().getActionByName(action.getAction()),
-                    action.getValue()
-            );
+                    action.getValue());
         });
 
         return data;

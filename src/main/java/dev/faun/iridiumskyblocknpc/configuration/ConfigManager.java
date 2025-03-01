@@ -9,56 +9,65 @@ import dev.faun.iridiumskyblocknpc.IridiumSkyblockNPC;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Map;
 
 public class ConfigManager {
-    private final IridiumSkyblockNPC plugin;
-    private final HashMap<Configs, SettingsManager> configs = new HashMap<>();
+	private final IridiumSkyblockNPC plugin;
+	private final Map<Class<? extends SettingsHolder>, SettingsManager> configs = new HashMap<>();
+	private final Map<Class<? extends SettingsHolder>, String> configFileNames = new HashMap<>();
+	private final Map<String, Class<? extends SettingsHolder>> propertyPrefixToConfig = new HashMap<>();
 
-    public ConfigManager(IridiumSkyblockNPC plugin) {
-        this.plugin = plugin;
-    }
+	public ConfigManager(IridiumSkyblockNPC plugin) {
+		this.plugin = plugin;
+		registerConfig(Config.class, "config.yml", "config");
+		registerConfig(Messages.class, "messages.yml", "messages");
+		registerConfig(Inventories.class, "inventories.yml", "inventories");
+	}
 
-    public void reloadConfigs() {
-        configs.clear();
-        loadConfig(Configs.CONFIG);
-    }
+	private void registerConfig(Class<? extends SettingsHolder> configClass, String fileName, String propertyPrefix) {
+		configFileNames.put(configClass, fileName);
+		propertyPrefixToConfig.put(propertyPrefix, configClass);
+	}
 
-    public void loadConfig(Configs name) {
-        String fileName = name.name().toLowerCase() + ".yml";
-        File file = new File(plugin.getDataFolder(), fileName);
+	public void reloadConfigs() {
+		configs.clear();
+		configFileNames.keySet().forEach(this::loadConfig);
+	}
 
-        if (!file.exists()) {
-            file.getParentFile().mkdirs();
-        }
+	private void loadConfig(Class<? extends SettingsHolder> configClass) {
+		String fileName = configFileNames.get(configClass);
+		File file = new File(plugin.getDataFolder(), fileName);
 
-        SettingsManager settingsManager = initSettings(name, file);
-        configs.put(name, settingsManager);
-    }
+		if (!file.exists()) {
+			file.getParentFile().mkdirs();
+		}
 
-    public SettingsManager getConfig(Configs name) {
-        if (!configs.containsKey(name)) {
-            loadConfig(name);
-        }
+		SettingsManager settingsManager = SettingsManagerBuilder
+				.withYamlFile(Path.of(file.getPath()))
+				.configurationData(configClass)
+				.useDefaultMigrationService()
+				.create();
 
-        return configs.get(name);
-    }
+		configs.put(configClass, settingsManager);
+	}
 
-    public SettingsManager initSettings(Configs name, File config) {
-        Class<? extends SettingsHolder> clazz = switch (name) {
-            case CONFIG -> Config.class;
-        };
+	private SettingsManager getConfig(Class<? extends SettingsHolder> configClass) {
+		if (!configs.containsKey(configClass)) {
+			loadConfig(configClass);
+		}
+		return configs.get(configClass);
+	}
 
-        Path configFile = Path.of(config.getPath());
-        return SettingsManagerBuilder
-                .withYamlFile(configFile)
-                .configurationData(clazz)
-                .useDefaultMigrationService()
-                .create();
-    }
+	public <T> T getValue(Property<T> property) {
+		String propertyPath = property.getPath();
+		String prefix = propertyPath.split("\\.")[0];
 
-    public <T> T getValue(Property<T> property) {
-        Configs configSource = Configs.CONFIG;
-        SettingsManager settingsManager = getConfig(configSource);
-        return settingsManager.getProperty(property);
-    }
+		Class<? extends SettingsHolder> configClass = propertyPrefixToConfig.get(prefix);
+		if (configClass == null) {
+			throw new IllegalArgumentException("No config found for property prefix: " + prefix);
+		}
+
+		SettingsManager settingsManager = getConfig(configClass);
+		return settingsManager.getProperty(property);
+	}
 }
