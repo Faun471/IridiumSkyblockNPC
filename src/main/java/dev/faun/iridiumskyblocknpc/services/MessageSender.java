@@ -22,12 +22,10 @@ public class MessageSender {
 						.build();
 	}
 
-	// Static builder method
 	public static Builder builder() {
 		return new Builder();
 	}
 
-	// Builder class
 	public static class Builder {
 		private ConfigManager configManager;
 		private MessageFormatter formatter;
@@ -59,10 +57,9 @@ public class MessageSender {
 	 * Call this method after config reload to ensure the prefix is updated
 	 */
 	public void refreshPrefix() {
-		formatter.refreshPrefix();
+		formatter.refreshPlaceholders();
 	}
 
-	// Get a new formatter instance
 	public MessageFormatter formatter() {
 		return MessageFormatter.builder()
 				.configManager(configManager)

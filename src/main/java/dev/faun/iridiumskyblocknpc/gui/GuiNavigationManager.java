@@ -14,15 +14,24 @@ import org.bukkit.entity.Player;
  */
 public class GuiNavigationManager {
 
-	// Store navigation history per player
 	private final Map<UUID, Stack<GuiNavigationEntry>> playerNavigationHistory;
-
-	// Store GUI factories by type
 	private final Map<GuiType, BiFunction<Player, Object, GuiProvider>> guiFactories;
 
 	public GuiNavigationManager() {
 		this.playerNavigationHistory = new HashMap<>();
 		this.guiFactories = new HashMap<>();
+	}
+
+	public Map<UUID, Stack<GuiNavigationEntry>> getPlayerNavigationHistory() {
+		return playerNavigationHistory;
+	}
+
+	public Map<GuiType, BiFunction<Player, Object, GuiProvider>> getGuiFactories() {
+		return guiFactories;
+	}
+
+	public String getGuiTypes() {
+		return guiFactories.keySet().toString();
 	}
 
 	/**
@@ -31,9 +40,11 @@ public class GuiNavigationManager {
 	 * @param guiType
 	 *            The type of GUI
 	 * @param factory
-	 *            The function that creates the GUI provider with player and data
+	 *            The function that creates the GUI provider with player and
+	 *            data
 	 */
-	public void registerGuiFactory(GuiType guiType, BiFunction<Player, Object, GuiProvider> factory) {
+	public void registerGuiFactory(GuiType guiType,
+			BiFunction<Player, Object, GuiProvider> factory) {
 		guiFactories.put(guiType, factory);
 	}
 
@@ -52,11 +63,16 @@ public class GuiNavigationManager {
 
 		playerNavigationHistory.putIfAbsent(playerId, new Stack<>());
 
-		Stack<GuiNavigationEntry> history = playerNavigationHistory.get(playerId);
+		Stack<GuiNavigationEntry> history = playerNavigationHistory
+				.get(playerId);
 
-		// If the current GUI is the same as the previous one, update the data
-		if (!history.isEmpty() && guiType.equals(history.peek().getType())) {
-			history.set(history.size() - 1, new GuiNavigationEntry(guiType, data));
+		if (history.isEmpty()) {
+			history.push(new GuiNavigationEntry(guiType, data));
+			return;
+		}
+
+		if (guiType.equals(history.peek().getType())
+				&& data.equals(history.peek().getData())) {
 			return;
 		}
 
@@ -73,26 +89,34 @@ public class GuiNavigationManager {
 	 * @param data
 	 *            Additional data for the GUI
 	 * @param customProvider
-	 *            Optional custom GUI provider that overrides the registered one for
+	 *            Optional custom GUI provider that overrides the registered one
+	 *            for
 	 *            this call
 	 * @return true if navigation was successful
 	 */
-	public boolean navigateTo(Player player, GuiType guiType, Object data, GuiProvider customProvider) {
-		// Register this in history first
+	public boolean navigateTo(Player player, GuiType guiType, Object data,
+			GuiProvider customProvider) {
 		registerGui(player, guiType, data);
 
-		// Use custom provider if provided
 		if (customProvider != null) {
 			customProvider.send(player);
 			return true;
 		}
 
-		// Otherwise use registered factory
-		BiFunction<Player, Object, GuiProvider> factory = guiFactories.get(guiType);
+		BiFunction<Player, Object, GuiProvider> factory = guiFactories
+				.get(guiType);
 		if (factory != null) {
 			GuiProvider guiProvider = factory.apply(player, data);
 			if (guiProvider != null) {
 				guiProvider.send(player);
+				System.out.println(
+						"[GuiNavigationManager] Navigated to " + guiType);
+				System.out.println("[GuiNavigationManager] Current history: "
+						+ playerNavigationHistory
+								.get(player.getUniqueId()).stream().map(
+										entry -> entry.getType().toString())
+								.reduce((a, b) -> a + ", " + b)
+								.orElse("empty"));
 				return true;
 			}
 		}
@@ -116,8 +140,10 @@ public class GuiNavigationManager {
 	}
 
 	/**
-	 * Reopen the current GUI for a player. This is helpful for refreshing the GUI
-	 * or if a gui from another plugin was opened and we need to reopen the previous
+	 * Reopen the current GUI for a player. This is helpful for refreshing the
+	 * GUI
+	 * or if a gui from another plugin was opened and we need to reopen the
+	 * previous
 	 * gui upon closing it.
 	 * 
 	 * @param player
@@ -144,40 +170,34 @@ public class GuiNavigationManager {
 		UUID playerId = player.getUniqueId();
 
 		if (!playerNavigationHistory.containsKey(playerId)) {
-			System.out.println("[GuiNavigationManager] Warning: No navigation history found for player " + playerId);
+			System.out.println(
+					"[GuiNavigationManager] Warning: No navigation history found for player "
+							+ playerId);
 			return false;
 		}
 
-		Stack<GuiNavigationEntry> history = playerNavigationHistory.get(playerId);
+		Stack<GuiNavigationEntry> history = playerNavigationHistory
+				.get(playerId);
 		if (history.size() <= 1) {
-			System.out.println("[GuiNavigationManager] Warning: No previous GUI found for player " + playerId);
+			System.out.println(
+					"[GuiNavigationManager] Warning: No previous GUI found for player "
+							+ playerId);
 			return false;
 		}
 
-		// Remove current GUI
-		System.out.println("[GuiNavigationManager] " + history.pop().getType() + " removed from history");
-		System.out.println("[GuiNavigationManager] Current history size: " + history.size());
-		System.out.println("[GuiNavigationManager] Current history: " + history.stream().map(
-				entry -> entry.getType().toString()).reduce((a, b) -> a + ", " + b).orElse("empty"));
-
-		// Get the previous GUI and open it
 		GuiNavigationEntry previousGui = history.peek();
 
-		System.out.println("[GuiNavigationManager] Navigating back to " + previousGui.getType());
-
-		// Try to open using registered factory
-		BiFunction<Player, Object, GuiProvider> factory = guiFactories.get(previousGui.getType());
+		BiFunction<Player, Object, GuiProvider> factory = guiFactories
+				.get(previousGui.getType());
 		if (factory != null) {
-			GuiProvider guiProvider = factory.apply(player, previousGui.getData());
+			GuiProvider guiProvider = factory.apply(player,
+					previousGui.getData());
 			if (guiProvider != null) {
 				guiProvider.send(player);
 				return true;
 			}
 		}
 
-		// If no factory is registered, just return true but warn in console
-		System.out.println("[GuiNavigationManager] Warning: No factory registered for GUI type " +
-				previousGui.getType() + ". GUI will not automatically open.");
 		return true;
 	}
 
@@ -195,12 +215,12 @@ public class GuiNavigationManager {
 			return null;
 		}
 
-		Stack<GuiNavigationEntry> history = playerNavigationHistory.get(playerId);
+		Stack<GuiNavigationEntry> history = playerNavigationHistory
+				.get(playerId);
 		if (history.size() <= 1) {
 			return null;
 		}
 
-		// Get previous GUI without removing current
 		GuiNavigationEntry previousGui = history.get(history.size() - 1);
 
 		return previousGui;
@@ -226,7 +246,8 @@ public class GuiNavigationManager {
 	public GuiNavigationEntry getCurrentGui(Player player) {
 		UUID playerId = player.getUniqueId();
 
-		if (!playerNavigationHistory.containsKey(playerId) || playerNavigationHistory.get(playerId).isEmpty()) {
+		if (!playerNavigationHistory.containsKey(playerId)
+				|| playerNavigationHistory.get(playerId).isEmpty()) {
 			return null;
 		}
 
@@ -237,7 +258,7 @@ public class GuiNavigationManager {
 	 * Enum representing different types of GUIs in the plugin
 	 */
 	public enum GuiType {
-		MAIN, NPC_SETTINGS, COLOR_SELECTOR, SCALE_SELECTOR, STATS;
+		MAIN, NPC_SETTINGS, COLOR_SELECTOR, SCALE_SELECTOR, STATS, CUSTOM;
 	}
 
 	/**

@@ -30,12 +30,9 @@ public class ReloadCommand {
 		configManager.reloadConfigs();
 		long end = System.currentTimeMillis();
 
-		// Refresh the prefix in both the message formatter and message sender
-		messageFormatter.refreshPrefix();
+		messageFormatter.refreshPlaceholders();
 		messageSender.refreshPrefix();
 		
-		// Build the success message with the updated formatter (which now has
-		// the refreshed prefix)
 		Component message = messageFormatter.text(Messages.RELOAD_SUCCESS)
 				.placeholder("time", String.valueOf(end - start))
 				.buildComponent();

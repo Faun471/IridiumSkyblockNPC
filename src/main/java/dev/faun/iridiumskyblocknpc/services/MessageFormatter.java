@@ -37,9 +37,8 @@ public class MessageFormatter {
 		this.miniMessage = builder.miniMessage;
 		this.configManager = builder.configManager;
 
-		// Add prefix placeholder if config manager is available
 		if (this.configManager != null) {
-			refreshPrefix();
+			refreshPlaceholders();
 		}
 	}
 
@@ -47,18 +46,17 @@ public class MessageFormatter {
 	 * Refreshes the prefix placeholder with the latest value from the config
 	 * Call this method after reloading configs to update the prefix
 	 */
-	public void refreshPrefix() {
+	public void refreshPlaceholders() {
 		if (this.configManager != null) {
 			placeholder("prefix", configManager.getValue(Messages.PREFIX));
 		}
 	}
 
-	// Static builder creation method
 	public static Builder builder() {
 		return new Builder();
 	}
 
-	// Builder class
+
 	public static class Builder {
 		private MiniMessage miniMessage = DEFAULT_MINI_MESSAGE;
 		private ConfigManager configManager;
@@ -235,7 +233,6 @@ public class MessageFormatter {
 	private @NotNull List<TagResolver> buildResolvers() {
 		List<TagResolver> resolvers = new ArrayList<>(customResolvers);
 
-		// Add all string and component placeholders
 		for (Map.Entry<String, Object> entry : placeholders.entrySet()) {
 			String key = entry.getKey();
 			Object value = entry.getValue();

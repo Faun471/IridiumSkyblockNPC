@@ -14,7 +14,11 @@ public class GuiItemBean {
 	private boolean glow;
 	private String action;
 	private String color;
+	private List<GuiActionBean> actions;
 
+	/**
+	 * Constructor with all fields
+	 */
 	public GuiItemBean(int slot, Material material, Material materialDisabled, String name, List<String> lore, String action,
 			String color, boolean glow) {
 		this.slot = slot;
@@ -25,8 +29,12 @@ public class GuiItemBean {
 		this.action = action;
 		this.color = color;
 		this.glow = glow;
+		this.actions = new ArrayList<>();
 	}
 
+	/**
+	 * Default constructor for serialization
+	 */
 	public GuiItemBean() {
 		this.slot = 0;
 		this.material = Material.AIR;
@@ -36,6 +44,7 @@ public class GuiItemBean {
 		this.action = "";
 		this.color = "";
 		this.glow = false;
+		this.actions = new ArrayList<>();
 	}
 
 	public int getSlot() {
@@ -62,6 +71,11 @@ public class GuiItemBean {
 		return lore.get(index);
 	}
 
+	/**
+	 * @return The legacy action string
+	 * @deprecated Use getActions() instead
+	 */
+	@Deprecated
 	public String getAction() {
 		return action;
 	}
@@ -72,6 +86,13 @@ public class GuiItemBean {
 
 	public boolean getGlow() {
 		return glow;
+	}
+
+	/**
+	 * @return List of actions for this item, sorted by order
+	 */
+	public List<GuiActionBean> getActions() {
+		return actions;
 	}
 
 	public void setSlot(int slot) {
@@ -94,6 +115,12 @@ public class GuiItemBean {
 		this.lore = lore;
 	}
 
+	/**
+	 * Sets the legacy action
+	 * @param action The action string
+	 * @deprecated Use addAction or setActions instead
+	 */
+	@Deprecated
 	public void setAction(String action) {
 		this.action = action;
 	}
@@ -104,5 +131,24 @@ public class GuiItemBean {
 
 	public void setGlow(boolean glow) {
 		this.glow = glow;
+	}
+	
+	/**
+	 * Set the actions list for this item
+	 * @param actions The actions to set
+	 */
+	public void setActions(List<GuiActionBean> actions) {
+		this.actions = actions;
+	}
+	
+	/**
+	 * Add an action to this item
+	 * @param action The action to add
+	 */
+	public void addAction(GuiActionBean action) {
+		if (this.actions == null) {
+			this.actions = new ArrayList<>();
+		}
+		this.actions.add(action);
 	}
 }

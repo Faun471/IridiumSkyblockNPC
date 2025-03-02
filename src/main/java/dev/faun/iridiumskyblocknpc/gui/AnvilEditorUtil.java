@@ -54,13 +54,11 @@ public class AnvilEditorUtil {
 			BiConsumer<Component, Npc> valueUpdater,
 			Runnable reopenGui) {
 
-		// Create the item to rename
 		ItemStack inputItem = new ItemStack(Material.PAPER);
 		ItemMeta meta = inputItem.getItemMeta();
 		meta.displayName(sanitizeInput(defaultText));
 		inputItem.setItemMeta(meta);
 
-		// Create the output item
 		ItemStack outputItem = new ItemStack(Material.PAPER);
 		ItemMeta outputMeta = outputItem.getItemMeta();
 		outputMeta.displayName(sanitizeInput(defaultText));
@@ -68,25 +66,20 @@ public class AnvilEditorUtil {
 
 		valueUpdater.accept(sanitizeInput(defaultText), npc);
 
-		// Build the anvil GUI
 		new AnvilGUI.Builder()
 				.plugin(plugin)
 				.title(title)
 				.itemLeft(inputItem)
 				.itemOutput(outputItem)
 				.onClick((slot, stateSnapshot) -> {
-					// Check if the player clicked the output slot
 					if (slot != AnvilGUI.Slot.OUTPUT) {
 						return Collections.emptyList();
 					}
 
-					// Get the input text
 					String input = stateSnapshot.getText();
 
-					// Sanitize input to remove unsafe patterns
 					Component sanitizedInput = sanitizeInput(input);
 
-					// Update the NPC with the new value
 					valueUpdater.accept(sanitizedInput, npc);
 
 					return Arrays.asList(
@@ -98,7 +91,6 @@ public class AnvilEditorUtil {
 							}));
 				})
 				.onClose((e) -> {
-					// Reopen the GUI if the player closes it
 					Bukkit.getScheduler().runTaskLater(plugin, () -> {
 						reopenGui.run();
 					}, 2L);
@@ -115,7 +107,6 @@ public class AnvilEditorUtil {
 	 * @return A sanitized version of the input
 	 */
 	private static Component sanitizeInput(String input) {
-		// Check if input is not null
 		if (input == null) {
 			return Component.empty();
 		}

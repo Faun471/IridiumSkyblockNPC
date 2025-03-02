@@ -13,6 +13,7 @@ import java.util.Map;
 
 public class ConfigManager {
 	private final IridiumSkyblockNPC plugin;
+
 	private final Map<Class<? extends SettingsHolder>, SettingsManager> configs = new HashMap<>();
 	private final Map<Class<? extends SettingsHolder>, String> configFileNames = new HashMap<>();
 	private final Map<String, Class<? extends SettingsHolder>> propertyPrefixToConfig = new HashMap<>();
@@ -24,7 +25,13 @@ public class ConfigManager {
 		registerConfig(Inventories.class, "inventories.yml", "inventories");
 	}
 
-	private void registerConfig(Class<? extends SettingsHolder> configClass, String fileName, String propertyPrefix) {
+	public SettingsManager getSettingsManager(
+			Class<? extends SettingsHolder> configClass) {
+		return getConfig(configClass);
+	}
+
+	private void registerConfig(Class<? extends SettingsHolder> configClass,
+			String fileName, String propertyPrefix) {
 		configFileNames.put(configClass, fileName);
 		propertyPrefixToConfig.put(propertyPrefix, configClass);
 	}
@@ -51,7 +58,8 @@ public class ConfigManager {
 		configs.put(configClass, settingsManager);
 	}
 
-	private SettingsManager getConfig(Class<? extends SettingsHolder> configClass) {
+	private SettingsManager getConfig(
+			Class<? extends SettingsHolder> configClass) {
 		if (!configs.containsKey(configClass)) {
 			loadConfig(configClass);
 		}
@@ -62,9 +70,11 @@ public class ConfigManager {
 		String propertyPath = property.getPath();
 		String prefix = propertyPath.split("\\.")[0];
 
-		Class<? extends SettingsHolder> configClass = propertyPrefixToConfig.get(prefix);
+		Class<? extends SettingsHolder> configClass = propertyPrefixToConfig
+				.get(prefix);
 		if (configClass == null) {
-			throw new IllegalArgumentException("No config found for property prefix: " + prefix);
+			throw new IllegalArgumentException(
+					"No config found for property prefix: " + prefix);
 		}
 
 		SettingsManager settingsManager = getConfig(configClass);

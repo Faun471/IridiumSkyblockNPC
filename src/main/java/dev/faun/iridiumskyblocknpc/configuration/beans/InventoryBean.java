@@ -195,4 +195,13 @@ public class InventoryBean {
 	public final boolean isEmpty() {
 		return items.isEmpty();
 	}
+
+	/**
+	 * Check if the inventory is empty.
+	 *
+	 * @return Whether the inventory is empty
+	 */
+	public final boolean getEmpty() {
+		return items.isEmpty();
+	}
 }
